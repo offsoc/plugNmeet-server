@@ -36,11 +36,67 @@ client:
     text: 'Powered by <a href="https://www.plugnmeet.org" target="_blank">plugNmeet</a>'
   # Specify host information for accurate BBB join URLs when behind a load balancer.
   bbb_join_host: "http://localhost:3000"
+  # Authentication methods configuration
+  auth_methods:
+    # OAuth2 providers
+    oauth2:
+      google:
+        enabled: false
+        client_id: "your-google-client-id"
+        client_secret: "your-google-client-secret"
+        redirect_url: "http://localhost:8080/auth/callback/google"
+        scopes:
+          - "openid"
+          - "profile"
+          - "email"
+      microsoft:
+        enabled: false
+        client_id: "your-microsoft-client-id"
+        client_secret: "your-microsoft-client-secret"
+        redirect_url: "http://localhost:8080/auth/callback/microsoft"
+        auth_url: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+        token_url: "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+        scopes:
+          - "openid"
+          - "profile"
+          - "email"
+      github:
+        enabled: false
+        client_id: "your-github-client-id"
+        client_secret: "your-github-client-secret"
+        redirect_url: "http://localhost:8080/auth/callback/github"
+        auth_url: "https://github.com/login/oauth/authorize"
+        token_url: "https://github.com/login/oauth/access_token"
+        scopes:
+          - "read:user"
+          - "user:email"
+    # SAML configuration
+    saml:
+      enabled: false
+      idp_issuer_url: "https://your-idp.com/saml"
+      idp_cert: "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+      sp_cert: "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+      sp_key: "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+      acs_url: "http://localhost:8080/auth/callback/saml"
+    # LDAP configuration
+    ldap:
+      enabled: false
+      server: "ldap.your-domain.com"
+      port: 389
+      base_dn: "dc=your-domain,dc=com"
+      bind_dn: "cn=admin,dc=your-domain,dc=com"
+      bind_pass: "your-bind-password"
+    # JWT configuration
+    jwt:
+      enabled: false
+      issuer: "your-issuer"
+      audience: "your-audience"
+      key: "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
 
 room_default_settings:
   max_duration: 0 # Duration in minutes. 0 means unlimited.
   max_participants: 0 # 0 means unlimited.
-  # Limit the number of breakout rooms. Default is 6, maximum is 16.
+  # Limit the number of breakout rooms. Default is 6, maximum is 60.
   max_num_breakout_rooms: 6
 
 log_settings:

@@ -1,6 +1,8 @@
 package routers
 
 import (
+	"runtime"
+
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -12,7 +14,6 @@ import (
 	"github.com/mynaparrot/plugnmeet-server/pkg/controllers"
 	"github.com/mynaparrot/plugnmeet-server/pkg/factory"
 	"github.com/mynaparrot/plugnmeet-server/version"
-	"runtime"
 )
 
 func New(appConfig *config.AppConfig, ctrl *factory.ApplicationControllers) *fiber.App {
@@ -78,6 +79,24 @@ func New(appConfig *config.AppConfig, ctrl *factory.ApplicationControllers) *fib
 
 	auth := app.Group("/auth", ctrl.AuthController.HandleAuthHeaderCheck)
 	auth.Post("/getClientFiles", ctrl.FileController.HandleGetClientFiles)
+
+	// 创建多因素身份验证控制器
+	multiAuthController := controllers.NewMultiAuthController(appConfig)
+
+	// OAuth2回调路由
+	app.Get("/auth/callback/google", multiAuthController.HandleOAuth2Callback("google"))
+	app.Get("/auth/callback/microsoft", multiAuthController.HandleOAuth2Callback("microsoft"))
+	app.Get("/auth/callback/github", multiAuthController.HandleOAuth2Callback("github"))
+
+	// SAML回调路由
+	app.Post("/auth/callback/saml", multiAuthController.HandleSAMLCallback)
+	app.Get("/auth/saml/login", multiAuthController.GenerateSAMLAuthURL)
+
+	// LDAP登录路由
+	app.Post("/auth/ldap/login", multiAuthController.HandleLDAPLogin)
+
+	// JWT认证路由
+	app.Post("/auth/jwt/verify", multiAuthController.HandleJWTAuth)
 
 	// for room
 	room := auth.Group("/room")
@@ -192,6 +211,17 @@ func New(appConfig *config.AppConfig, ctrl *factory.ApplicationControllers) *fib
 	// otherwise hard to do it concurrently
 	api.Post("/uploadedFileMerge", ctrl.FileController.HandleUploadedFileMerge)
 	api.Post("/uploadBase64EncodedData", ctrl.FileController.HandleUploadBase64EncodedData)
+
+	// 创建AI控制器
+	aiController := controllers.NewAIController(appConfig, nil)
+
+	// AI功能路由组
+	ai := api.Group("/ai")
+	ai.Post("/generateSummary", aiController.HandleGenerateMeetingSummary)
+	ai.Get("/getSummary", aiController.HandleGetMeetingSummary)
+	ai.Post("/chat", aiController.HandleProcessChatMessage)
+	ai.Post("/translate", aiController.HandleTranslateText)
+	ai.Post("/saveTranscript", aiController.HandleSaveTranscript)
 
 	// last method
 	app.Use(func(c *fiber.Ctx) error {

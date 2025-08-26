@@ -1,13 +1,6 @@
 package config
 
 import (
-	"github.com/mynaparrot/plugnmeet-protocol/utils"
-	"github.com/nats-io/nats.go"
-	"github.com/nats-io/nats.go/jetstream"
-	"github.com/redis/go-redis/v9"
-	"github.com/sirupsen/logrus"
-	"gopkg.in/natefinch/lumberjack.v2"
-	"gorm.io/gorm"
 	"io"
 	"log"
 	"os"
@@ -15,6 +8,14 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/mynaparrot/plugnmeet-protocol/utils"
+	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go/jetstream"
+	"github.com/redis/go-redis/v9"
+	"github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
+	"gorm.io/gorm"
 )
 
 type AppConfig struct {
@@ -51,6 +52,61 @@ type ClientInfo struct {
 	ProxyHeader    string         `yaml:"proxy_header"`
 	CopyrightConf  *CopyrightConf `yaml:"copyright_conf"`
 	BBBJoinHost    *string        `yaml:"bbb_join_host"`
+	AuthMethods    *AuthMethods   `yaml:"auth_methods"` // 新增身份验证方法配置
+}
+
+// AuthMethods 身份验证方法配置
+type AuthMethods struct {
+	OAuth2 *OAuth2Methods `yaml:"oauth2,omitempty"`
+	SAML   *SAMLConfig    `yaml:"saml,omitempty"`
+	LDAP   *LDAPConfig    `yaml:"ldap,omitempty"`
+	JWT    *JWTConfig     `yaml:"jwt,omitempty"`
+}
+
+// OAuth2Methods OAuth2方法配置
+type OAuth2Methods struct {
+	Google    *OAuth2Config `yaml:"google,omitempty"`
+	Microsoft *OAuth2Config `yaml:"microsoft,omitempty"`
+	GitHub    *OAuth2Config `yaml:"github,omitempty"`
+}
+
+// OAuth2Config OAuth2配置
+type OAuth2Config struct {
+	Enabled      bool     `yaml:"enabled"`
+	ClientID     string   `yaml:"client_id"`
+	ClientSecret string   `yaml:"client_secret"`
+	RedirectURL  string   `yaml:"redirect_url"`
+	Scopes       []string `yaml:"scopes,omitempty"`
+	AuthURL      string   `yaml:"auth_url,omitempty"`
+	TokenURL     string   `yaml:"token_url,omitempty"`
+}
+
+// SAMLConfig SAML配置
+type SAMLConfig struct {
+	Enabled                     bool   `yaml:"enabled"`
+	IDPIssuerURL                string `yaml:"idp_issuer_url"`
+	IDPCert                     string `yaml:"idp_cert"`
+	SPCert                      string `yaml:"sp_cert"`
+	SPKey                       string `yaml:"sp_key"`
+	AssertionConsumerServiceURL string `yaml:"acs_url"`
+}
+
+// LDAPConfig LDAP配置
+type LDAPConfig struct {
+	Enabled  bool   `yaml:"enabled"`
+	Server   string `yaml:"server"`
+	Port     int    `yaml:"port"`
+	BaseDN   string `yaml:"base_dn"`
+	BindDN   string `yaml:"bind_dn"`
+	BindPass string `yaml:"bind_pass"`
+}
+
+// JWTConfig JWT配置
+type JWTConfig struct {
+	Enabled  bool   `yaml:"enabled"`
+	Issuer   string `yaml:"issuer"`
+	Audience string `yaml:"audience"`
+	Key      string `yaml:"key"`
 }
 
 type WebhookConf struct {

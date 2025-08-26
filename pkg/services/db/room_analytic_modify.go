@@ -2,6 +2,7 @@ package dbservice
 
 import (
 	"errors"
+
 	"github.com/mynaparrot/plugnmeet-server/pkg/dbmodels"
 	"gorm.io/gorm"
 )
@@ -29,4 +30,29 @@ func (s *DatabaseService) DeleteAnalyticByFileId(fileId string) (int64, error) {
 	}
 
 	return result.RowsAffected, nil
+}
+
+// SaveMeetingSummary 保存会议摘要
+func (d *DatabaseService) SaveMeetingSummary(summary *dbmodels.MeetingSummary) error {
+	return d.db.Save(summary).Error
+}
+
+// SaveMeetingTranscript 保存会议转录
+func (d *DatabaseService) SaveMeetingTranscript(transcript *dbmodels.MeetingTranscript) error {
+	return d.db.Save(transcript).Error
+}
+
+// SaveAIChatMessage 保存AI聊天消息
+func (d *DatabaseService) SaveAIChatMessage(message *dbmodels.AIChatMessage) error {
+	return d.db.Save(message).Error
+}
+
+// InsertOrUpdateAttentionTracking 插入或更新用户的注意力跟踪记录
+func (d *DatabaseService) InsertOrUpdateAttentionTracking(attention *dbmodels.AttentionTracking) error {
+	return d.db.Save(attention).Error
+}
+
+// CleanupOldAttentionRecords 清理旧的注意力记录
+func (d *DatabaseService) CleanupOldAttentionRecords(beforeTime int64) error {
+	return d.db.Where("timestamp < ?", beforeTime).Delete(&dbmodels.AttentionTracking{}).Error
 }
